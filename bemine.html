@@ -491,7 +491,7 @@ const app = initializeApp(firebaseConfig);
     <div class="stage1" id="stage1">
         <div class="proposal-container">
             <h1>Will You Go On A Date With Me?</h1>
-            <p>I really enjoy your company and would love to spend time with you. What do you say?</p>
+            <p>I really you're fine divine and 1 of a kind and I would love to spend some time. What do you say lil baby?</p>
             <div class="button-container">
                 <button class="yes-btn" onclick="stage1To2()">Yes!</button>
                 <button class="no-btn" id="noBtn" onclick="handleNoClick()">No</button>
@@ -502,21 +502,21 @@ const app = initializeApp(firebaseConfig);
     <!-- Stage 2: Multiple Choice Questions -->
     <div class="stage2" id="stage2">
         <div class="questions-container">
-            <h2>Tell me more about your preferences!</h2>
+            <h2>Tell me what you like!</h2>
             
             <div class="question">
-                <label for="activity">What activity sounds fun?</label>
+                <label for="activity">What sounds fun?</label>
                 <select id="activity" required>
                     <option value="">Select an option...</option>
-                    <option value="dinner">Dinner at a nice restaurant</option>
-                    <option value="movie">Movie and popcorn</option>
+                    <option value="dinner">Dinner at restaurant</option>
+                    <option value="entertainment">Entertainment (bowling, movies)</option>
                     <option value="outdoor">Outdoor adventure (hiking, park)</option>
                     <option value="casual">Casual coffee or drinks</option>
                 </select>
             </div>
  
             <div class="question">
-                <label for="vibe">What kind of vibe do you prefer?</label>
+                <label for="vibe">What kind of vibe are you into?</label>
                 <select id="vibe" required>
                     <option value="">Select an option...</option>
                     <option value="romantic">Romantic and intimate</option>
@@ -527,13 +527,13 @@ const app = initializeApp(firebaseConfig);
             </div>
  
             <div class="question">
-                <label for="duration">How long would you like to spend?</label>
+                <label for="duration">How much time do I have to win you over?</label>
                 <select id="duration" required>
                     <option value="">Select an option...</option>
-                    <option value="afternoon">Afternoon (2-4 hours)</option>
-                    <option value="evening">Evening (4-6 hours)</option>
+                    <option value="couple">Couple Hours (2-3 hours)</option>
+                    <option value="few">Few Hours (4-6 hours)</option>
                     <option value="fullday">Full day/night (6+ hours)</option>
-                    <option value="quickdate">Quick (1-2 hours)</option>
+                    <option value="quickdate">Quick (0-1 hours)</option>
                 </select>
             </div>
  
@@ -541,10 +541,10 @@ const app = initializeApp(firebaseConfig);
                 <label for="location">Where should we meet?</label>
                 <select id="location" required>
                     <option value="">Select an option...</option>
-                    <option value="downtown">Downtown</option>
-                    <option value="mall">Mall/Shopping district</option>
-                    <option value="park">Park or nature spot</option>
-                    <option value="surprise">Surprise me!</option>
+                    <option value="meetup">Meet up at location</option>
+                    <option value="pickup">I'll pick you up</option>
+                    <option value="scoop">You can scoop me up</option>
+                    <option value="surprise">We'll talk about it</option>
                 </select>
             </div>
  
@@ -584,8 +584,9 @@ const app = initializeApp(firebaseConfig);
     <div class="modal" id="calendarModal">
         <div class="modal-content">
             <h2>📅 Add to Calendar?</h2>
-            <p>Would you like to add this date to your Google Calendar? (Coming soon - requires setup)</p>
+            <p>Would you like to add this date to your Google Calendar?</p>
             <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="window.open('https://calendar.google.com/calendar/r/eventedit?text=Date+with+You&dates=' + selectedAnswers.date.replace(/-/g, '') + 'T' + selectedAnswers.time.replace(/:/g, '') + '00Z/' + selectedAnswers.date.replace(/-/g, '') + 'T' + selectedAnswers.time.replace(/:/g, '') + '00Z&details=Looking+forward+to+our+date!&location=' + encodeURIComponent(selectedAnswers.location), '_blank')">Add to Calendar</button>
                 <button class="modal-btn secondary" onclick="closeCalendarModal()">Skip for Now</button>
             </div>
         </div>
@@ -594,7 +595,7 @@ const app = initializeApp(firebaseConfig);
     <!-- Stage 4: Messaging -->
     <div class="stage4" id="stage4">
         <div class="chat-header">
-            <h2>💬 Your Chat</h2>
+            <h2>💬 Our Chat</h2>
             <p id="dateDisplay"></p>
         </div>
         <div class="messages" id="messagesContainer"></div>
