@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A beautiful interactive date proposal web app">
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Date Proposal">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23667eea' width='192' height='192'/%3E%3Ctext x='96' y='120' font-size='80' fill='white' text-anchor='middle' font-family='Arial'%3E❤️%3C/text%3E%3C/svg%3E">
+    <title>Will You Go On A Date With Me?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+ 
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+ 
+        /* Stage 1: Initial Proposal */
+        .stage1 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            flex-direction: column;
+            gap: 40px;
+        }
+ 
+        .proposal-container {
+            background: white;
+            padding: 60px 80px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+ 
+        .proposal-container h1 {
+            font-size: 42px;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+ 
+        .proposal-container p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+ 
+        .button-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 60px;
+        }
+ 
+        .yes-btn, .no-btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            position: absolute;
+        }
+ 
+        .yes-btn {
+            background: #4CAF50;
+            color: white;
+            left: 20px;
+            z-index: 10;
+        }
+ 
+        .yes-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+ 
+        .no-btn {
+            background: #f44336;
+            color: white;
+            right: 20px;
+            z-index: 10;
+        }
+ 
+        .no-btn:hover {
+            background: #da190b;
+        }
+ 
+        /* Stage 2: Questions */
+        .stage2 {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            gap: 30px;
+            padding: 40px 20px;
+        }
+ 
+        /* Stage 3: Calendar & Time */
+        .stage3 {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            gap: 30px;
+            padding: 40px 20px;
+        }
+
+        .questions-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .questions-container h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .question {
+            margin-bottom: 20px;
+        }
+
+        .question label {
+            display: block;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .question select {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .questions-container > button {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            position: sticky;
+            bottom: 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .questions-container > button:hover {
+            background: #45a049;
+            transform: scale(1.02);
+        }
+ 
+        .calendar-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+        }
+ 
+        .calendar-container h2 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+ 
+        .calendar-container input[type="date"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .calendar-container input[type="time"] {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+ 
+        .calendar-container button {
+            width: 100%;
+            padding: 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+ 
+        .calendar-container button:hover {
+            background: #45a049;
+            transform: scale(1.02);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-content h2 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .modal-content p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .modal-btn.primary:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+
+        .modal-btn.secondary {
+            background: #ddd;
+            color: #333;
+        }
+
+        .modal-btn.secondary:hover {
+            background: #bbb;
+        }
+ 
+        /* Stage 4: Messaging */
+        .stage4 {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+ 
+        .chat-header {
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+ 
+        .chat-header h2 {
+            font-size: 24px;
+            margin: 0;
+        }
+ 
+        .chat-header p {
+            font-size: 14px;
+            margin: 5px 0 0 0;
+            opacity: 0.8;
+        }
+ 
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+ 
+        .message {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+ 
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+ 
+        .message-bubble {
+            max-width: 300px;
+            padding: 12px 16px;
+            border-radius: 15px;
+            word-wrap: break-word;
+            font-size: 16px;
+        }
+ 
+        .my-message {
+            justify-content: flex-end;
+        }
+ 
+        .my-message .message-bubble {
+            background: #4CAF50;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+ 
+        .her-message {
+            justify-content: flex-start;
+        }
+ 
+        .her-message .message-bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+ 
+        .input-area {
+            background: white;
+            padding: 20px;
+            border-top: 2px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 10px;
+        }
+ 
+        .input-area input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border 0.3s ease;
+        }
+ 
+        .input-area input:focus {
+            border-color: #667eea;
+        }
+ 
+        .input-area button {
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+ 
+        .input-area button:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: slideInRight 0.3s ease;
+            z-index: 999;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Stage 1: Proposal -->
+    <div class="stage1" id="stage1">
+        <div class="proposal-container">
+            <h1>Will You Go On A Date With Me?</h1>
+            <p>I really enjoy your company and would love to spend time with you. What do you say?</p>
+            <div class="button-container">
+                <button class="yes-btn" onclick="stage1To2()">Yes!</button>
+                <button class="no-btn" id="noBtn" onclick="handleNoClick()">No</button>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- Stage 2: Multiple Choice Questions -->
+    <div class="stage2" id="stage2">
+        <div class="questions-container">
+            <h2>Tell me more about your preferences!</h2>
+            
+            <div class="question">
+                <label for="activity">What activity sounds fun?</label>
+                <select id="activity" required>
+                    <option value="">Select an option...</option>
+                    <option value="dinner">Dinner at a nice restaurant</option>
+                    <option value="movie">Movie and popcorn</option>
+                    <option value="outdoor">Outdoor adventure (hiking, park)</option>
+                    <option value="casual">Casual coffee or drinks</option>
+                </select>
+            </div>
+ 
+            <div class="question">
+                <label for="vibe">What kind of vibe do you prefer?</label>
+                <select id="vibe" required>
+                    <option value="">Select an option...</option>
+                    <option value="romantic">Romantic and intimate</option>
+                    <option value="fun">Fun and playful</option>
+                    <option value="relaxed">Relaxed and casual</option>
+                    <option value="adventurous">Adventurous and exciting</option>
+                </select>
+            </div>
+ 
+            <div class="question">
+                <label for="duration">How long would you like to spend?</label>
+                <select id="duration" required>
+                    <option value="">Select an option...</option>
+                    <option value="afternoon">Afternoon (2-4 hours)</option>
+                    <option value="evening">Evening (4-6 hours)</option>
+                    <option value="fullday">Full day/night (6+ hours)</option>
+                    <option value="quickdate">Quick (1-2 hours)</option>
+                </select>
+            </div>
+ 
+            <div class="question">
+                <label for="location">Where should we meet?</label>
+                <select id="location" required>
+                    <option value="">Select an option...</option>
+                    <option value="downtown">Downtown</option>
+                    <option value="mall">Mall/Shopping district</option>
+                    <option value="park">Park or nature spot</option>
+                    <option value="surprise">Surprise me!</option>
+                </select>
+            </div>
+ 
+            <button onclick="stage2To3()">Next</button>
+        </div>
+    </div>
+ 
+    <!-- Stage 3: Calendar & Time Selection -->
+    <div class="stage3" id="stage3">
+        <div class="calendar-container">
+            <h2>When would you like to go?</h2>
+            <div class="question">
+                <label for="dateInput">Pick a date:</label>
+                <input type="date" id="dateInput" required>
+            </div>
+            <div class="question">
+                <label for="timeInput">What time?</label>
+                <input type="time" id="timeInput" required>
+            </div>
+            <button onclick="stage3To4()">Next</button>
+        </div>
+    </div>
+
+    <!-- Install PWA Modal -->
+    <div class="modal" id="installModal">
+        <div class="modal-content">
+            <h2>📱 Add to Homescreen?</h2>
+            <p>You can install this app on your homescreen for quick access!</p>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="installPWA()">Install</button>
+                <button class="modal-btn secondary" onclick="closeInstallModal()">Later</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Calendar Modal -->
+    <div class="modal" id="calendarModal">
+        <div class="modal-content">
+            <h2>📅 Add to Calendar?</h2>
+            <p>Would you like to add this date to your Google Calendar? (Coming soon - requires setup)</p>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" onclick="closeCalendarModal()">Skip for Now</button>
+            </div>
+        </div>
+    </div>
+ 
+    <!-- Stage 4: Messaging -->
+    <div class="stage4" id="stage4">
+        <div class="chat-header">
+            <h2>💬 Your Chat</h2>
+            <p id="dateDisplay"></p>
+        </div>
+        <div class="messages" id="messagesContainer"></div>
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+ 
+    <script>
+        let noClickCount = 0;
+        let selectedAnswers = {};
+        let deferredPrompt;
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => {
+                console.log('Service Worker registration failed:', err);
+            });
+        }
+
+        // Listen for install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted PWA installation');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+            closeInstallModal();
+        }
+
+        function closeInstallModal() {
+            document.getElementById('installModal').classList.remove('show');
+        }
+
+        function closeCalendarModal() {
+            document.getElementById('calendarModal').classList.remove('show');
+        }
+
+        function showNotification(title, message) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(title, {
+                    body: message,
+                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"%3E%3Crect fill="%23667eea" width="192" height="192"/%3E%3Ctext x="96" y="120" font-size="80" fill="white" text-anchor="middle" font-family="Arial"%3E❤️%3C/text%3E%3C/svg%3E',
+                    badge: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96"%3E%3Crect fill="%23667eea" width="96" height="96"/%3E%3Ctext x="48" y="64" font-size="40" fill="white" text-anchor="middle"%3E❤️%3C/text%3E%3C/svg%3E'
+                });
+            }
+        }
+
+        function showInAppNotification(message) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            setTimeout(() => {
+                notif.remove();
+            }, 3000);
+        }
+ 
+        function handleNoClick() {
+            noClickCount++;
+            const noBtn = document.getElementById('noBtn');
+ 
+            if (noClickCount === 1) {
+                alert('😊 Come on, I bet you\'d have fun! Let me ask again...');
+                location.reload();
+            } else if (noClickCount === 2) {
+                alert('Nice try! That button is disabled now. 😉');
+                noBtn.disabled = true;
+                noBtn.style.opacity = '0.5';
+                noBtn.style.cursor = 'not-allowed';
+            } else if (noClickCount >= 3) {
+                makeButtonEvade();
+            }
+        }
+ 
+        function makeButtonEvade() {
+            const noBtn = document.getElementById('noBtn');
+            const container = document.querySelector('.button-container');
+            
+            const randomX = Math.random() * (container.offsetWidth - noBtn.offsetWidth);
+            const randomY = Math.random() * (container.offsetHeight - noBtn.offsetHeight);
+            
+            noBtn.style.position = 'absolute';
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+        }
+ 
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('dateInput');
+            const today = new Date();
+            const twoMonthsLater = new Date(today);
+            twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
+
+            const todayString = today.toISOString().split('T')[0];
+            const maxDateString = twoMonthsLater.toISOString().split('T')[0];
+
+            dateInput.min = todayString;
+            dateInput.max = maxDateString;
+
+            const noBtn = document.getElementById('noBtn');
+            noBtn.addEventListener('mouseover', function() {
+                if (noClickCount >= 3) {
+                    makeButtonEvade();
+                }
+            });
+        });
+ 
+        function stage1To2() {
+            document.getElementById('stage1').style.display = 'none';
+            document.getElementById('stage2').style.display = 'flex';
+        }
+ 
+        function stage2To3() {
+            const activity = document.getElementById('activity').value;
+            const vibe = document.getElementById('vibe').value;
+            const duration = document.getElementById('duration').value;
+            const location = document.getElementById('location').value;
+
+            if (!activity || !vibe || !duration || !location) {
+                alert('Please answer all questions!');
+                return;
+            }
+
+            selectedAnswers.activity = activity;
+            selectedAnswers.vibe = vibe;
+            selectedAnswers.duration = duration;
+            selectedAnswers.location = location;
+
+            document.getElementById('stage2').style.display = 'none';
+            document.getElementById('stage3').style.display = 'flex';
+        }
+ 
+        function stage3To4() {
+            const dateInput = document.getElementById('dateInput').value;
+            const timeInput = document.getElementById('timeInput').value;
+
+            if (!dateInput) {
+                alert('Please select a date!');
+                return;
+            }
+
+            if (!timeInput) {
+                alert('Please select a time!');
+                return;
+            }
+
+            selectedAnswers.date = dateInput;
+            selectedAnswers.time = timeInput;
+
+            document.getElementById('stage3').style.display = 'none';
+            document.getElementById('stage4').style.display = 'flex';
+ 
+            // Format and display the date and time
+            const dateObj = new Date(selectedAnswers.date);
+            const formattedDate = dateObj.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            const timeObj = new Date(`2000-01-01 ${selectedAnswers.time}`);
+            const formattedTime = timeObj.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+ 
+            document.getElementById('dateDisplay').textContent = `📅 ${formattedDate} at ${formattedTime}`;
+ 
+            // Initialize chat
+            initializeChat();
+
+            // Show install modal after stage 3
+            setTimeout(() => {
+                document.getElementById('installModal').classList.add('show');
+            }, 500);
+
+            // Show calendar modal (for future Google Calendar integration)
+            setTimeout(() => {
+                document.getElementById('calendarModal').classList.add('show');
+            }, 2500);
+        }
+ 
+        function initializeChat() {
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = '';
+ 
+            const initialMessage = document.createElement('div');
+            initialMessage.className = 'message her-message';
+            initialMessage.innerHTML = '<div class="message-bubble">Yay! I\'m so excited! 😊</div>';
+            messagesContainer.appendChild(initialMessage);
+
+            showNotification('Date Confirmed! 💕', 'Check your messages!');
+        }
+ 
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+ 
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+ 
+            if (!message) return;
+ 
+            const messagesContainer = document.getElementById('messagesContainer');
+ 
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message my-message';
+            userMessage.innerHTML = `<div class="message-bubble">${escapeHtml(message)}</div>`;
+            messagesContainer.appendChild(userMessage);
+ 
+            input.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Show notification that message was sent
+            showInAppNotification('Message sent! ✓');
+        }
+ 
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
