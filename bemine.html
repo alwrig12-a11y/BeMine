@@ -1,6 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Top of bemine.html inside <head> -->
+<script type="module">
+  import { initializeApp } from "firebase/app";
+  // ADD THIS LINE BELOW TO IMPORT THE DATABASE:
+  import { getDatabase, ref, push, set } from "firebase/database";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBnTAARhSyJcMIWTg9WRAmJG9-jxTF5GDA",
+    authDomain: "bemine-45213.firebaseapp.com",
+    projectId: "bemine-45213",
+    storageBucket: "bemine-45213.firebasestorage.app",
+    messagingSenderId: "999541723475",
+    appId: "1:999541723475:web:91980fc1c63ee9276911a6",
+    databaseURL: "https://bemine-45213-default-rtdb.firebaseio.com" // Essential for Realtime DB
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  // Expose the database globally so your other functions can see it
+  window.db = getDatabase(app);
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="A beautiful interactive date proposal web app">
@@ -468,25 +489,6 @@
             }
         }
     </style>
-
-    // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyBnTAARhSyJcMIWTg9WRAmJG9-jxTF5GDA",
-  authDomain: "bemine-45213.firebaseapp.com",
-  projectId: "bemine-45213",
-  storageBucket: "bemine-45213.firebasestorage.app",
-  messagingSenderId: "999541723475",
-  appId: "1:999541723475:web:91980fc1c63ee9276911a6"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
 </head>
 <body>
     <!-- Stage 1: Proposal -->
@@ -725,9 +727,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
  
         function stage1To2() {
+            alert("Thank you so much for saying yes! I honestly... I didn't think you would lil baby. 🥹 Let's figure out the details!");
             document.getElementById('stage1').style.display = 'none';
             document.getElementById('stage2').style.display = 'flex';
-        }
+}
  
         function stage2To3() {
             const activity = document.getElementById('activity').value;
@@ -750,68 +753,67 @@ document.addEventListener('DOMContentLoaded', function() {
         }
  
         function stage3To4() {
-            const dateInput = document.getElementById('dateInput').value;
-            const timeInput = document.getElementById('timeInput').value;
+    const dateInput = document.getElementById('dateInput').value;
+    const timeInput = document.getElementById('timeInput').value;
 
-            if (!dateInput) {
-                alert('Please select a date!');
-                return;
-            }
+    if (!dateInput || !timeInput) {
+        alert('Please select a date and time!');
+        return;
+    }
 
-            if (!timeInput) {
-                alert('Please select a time!');
-                return;
-            }
+    selectedAnswers.date = dateInput;
+    selectedAnswers.time = timeInput;
 
-            selectedAnswers.date = dateInput;
-            selectedAnswers.time = timeInput;
+    // --- NEW: SEND NOTIFICATION / DATA TO YOUR FIREBASE END ---
+    if (window.db) {
+        const dateRef = ref(window.db, 'proposals');
+        const newProposalRef = push(dateRef);
+        set(newProposalRef, {
+            ...selectedAnswers,
+            completedAt: new Date().toISOString(),
+            status: "Finished All Stages"
+        }).then(() => {
+            console.log("Notification sent to your end successfully!");
+        }).catch((error) => {
+            console.error("Error alerting database: ", error);
+        });
+    }
+    // --- END OF NEW CODE ---
 
-            document.getElementById('stage3').style.display = 'none';
-            document.getElementById('stage4').style.display = 'flex';
- 
-            // Format and display the date and time
-            const dateObj = new Date(selectedAnswers.date);
-            const formattedDate = dateObj.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
+    document.getElementById('stage3').style.display = 'none';
+    document.getElementById('stage4').style.display = 'flex';
 
-            const timeObj = new Date(`2000-01-01 ${selectedAnswers.time}`);
-            const formattedTime = timeObj.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-            });
- 
-            document.getElementById('dateDisplay').textContent = `📅 ${formattedDate} at ${formattedTime}`;
- 
-            // Initialize chat
-            initializeChat();
+    // Format and display the date and time
+    const dateObj = new Date(selectedAnswers.date);
+    const formattedDate = dateObj.toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
 
-            // Show install modal after stage 3
-            setTimeout(() => {
-                document.getElementById('installModal').classList.add('show');
-            }, 500);
+    const timeObj = new Date(`2000-01-01 ${selectedAnswers.time}`);
+    const formattedTime = timeObj.toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: '2-digit', hour12: true
+    });
 
-            // Show calendar modal (for future Google Calendar integration)
-            setTimeout(() => {
-                document.getElementById('calendarModal').classList.add('show');
-            }, 2500);
-        }
+    document.getElementById('dateDisplay').textContent = `📅 ${formattedDate} at ${formattedTime}`;
+
+    initializeChat();
+
+    setTimeout(() => {
+        document.getElementById('installModal').classList.add('show');
+    }, 500);
+
+    setTimeout(() => {
+        document.getElementById('calendarModal').classList.add('show');
+    }, 2500);
+}
  
         function initializeChat() {
-            const messagesContainer = document.getElementById('messagesContainer');
-            messagesContainer.innerHTML = '';
- 
-            const initialMessage = document.createElement('div');
-            initialMessage.className = 'message her-message';
-            initialMessage.innerHTML = '<div class="message-bubble">Yay! I\'m so excited! 😊</div>';
-            messagesContainer.appendChild(initialMessage);
-
-            showNotification('Date Confirmed! 💕', 'Check your messages!');
-        }
+    const messagesContainer = document.getElementById('messagesContainer');
+    messagesContainer.innerHTML = ''; // Clears the window entirely
+    
+    // We removed the fake "Yay! I'm so excited!" message bubble from here.
+    showNotification('Date Confirmed! 💕', 'Check your messages!');
+}
  
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
