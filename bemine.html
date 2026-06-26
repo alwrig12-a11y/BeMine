@@ -468,6 +468,7 @@
             }
         }
     </style>
+
     // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 // TODO: Add SDKs for Firebase products that you want to use
@@ -485,6 +486,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
 </head>
 <body>
     <!-- Stage 1: Proposal -->
@@ -538,7 +540,7 @@ const app = initializeApp(firebaseConfig);
             </div>
  
             <div class="question">
-                <label for="location">Where should we meet?</label>
+                <label for="location">How we doing this lil baby?</label>
                 <select id="location" required>
                     <option value="">Select an option...</option>
                     <option value="meetup">Meet up at location</option>
@@ -669,55 +671,48 @@ const app = initializeApp(firebaseConfig);
             }, 3000);
         }
  
-        function handleNoClick() {
-            noClickCount++;
-            const noBtn = document.getElementById('noBtn');
- 
-            if (noClickCount === 1) {
-                alert('😊 Come on, I bet you\'d have fun! Let me ask again...');
-                location.reload();
-            } else if (noClickCount === 2) {
-                alert('Nice try! That button is disabled now. 😉');
-                noBtn.disabled = true;
-                noBtn.style.opacity = '0.5';
-                noBtn.style.cursor = 'not-allowed';
-            } else if (noClickCount >= 3) {
-                makeButtonEvade();
-            }
-        }
- 
-        function makeButtonEvade() {
-            const noBtn = document.getElementById('noBtn');
-            const container = document.querySelector('.button-container');
-            
-            const randomX = Math.random() * (container.offsetWidth - noBtn.offsetWidth);
-            const randomY = Math.random() * (container.offsetHeight - noBtn.offsetHeight);
-            
-            noBtn.style.position = 'absolute';
-            noBtn.style.left = randomX + 'px';
-            noBtn.style.top = randomY + 'px';
-        }
- 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const dateInput = document.getElementById('dateInput');
-            const today = new Date();
-            const twoMonthsLater = new Date(today);
-            twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
+        // --- Replace your existing handleNoClick, makeButtonEvade, and DOMContentLoaded listener with this ---
 
-            const todayString = today.toISOString().split('T')[0];
-            const maxDateString = twoMonthsLater.toISOString().split('T')[0];
+function handleNoClick() {
+    // Backup in case they somehow manage to click it (e.g., using keyboard tabs)
+    makeButtonEvade();
+}
 
-            dateInput.min = todayString;
-            dateInput.max = maxDateString;
+function makeButtonEvade() {
+    const noBtn = document.getElementById('noBtn');
+    
+    // Get viewport dimensions minus padding to keep the button fully on-screen
+    const maxX = window.innerWidth - noBtn.offsetWidth - 20;
+    const maxY = window.innerHeight - noBtn.offsetHeight - 20;
+    
+    const randomX = Math.max(20, Math.random() * maxX);
+    const randomY = Math.max(20, Math.random() * maxY);
+    
+    // Switch to fixed positioning so it can escape its small container and jump anywhere on screen
+    noBtn.style.position = 'fixed';
+    noBtn.style.left = randomX + 'px';
+    noBtn.style.top = randomY + 'px';
+}
 
-            const noBtn = document.getElementById('noBtn');
-            noBtn.addEventListener('mouseover', function() {
-                if (noClickCount >= 3) {
-                    makeButtonEvade();
-                }
-            });
-        });
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('dateInput');
+    const today = new Date();
+    const twoMonthsLater = new Date(today);
+    twoMonthsLater.setMonth(twoMonthsLater.getMonth() + 2);
+
+    const todayString = today.toISOString().split('T')[0];
+    const maxDateString = twoMonthsLater.toISOString().split('T')[0];
+
+    dateInput.min = todayString;
+    dateInput.max = maxDateString;
+
+    // TARGET THE MOUSEOVER IMMEDIATELY
+    const noBtn = document.getElementById('noBtn');
+    noBtn.addEventListener('mouseover', function() {
+        makeButtonEvade();
+    });
+});
  
         function stage1To2() {
             document.getElementById('stage1').style.display = 'none';
