@@ -4,8 +4,8 @@
     <!-- Top of bemine.html inside <head> -->
 <script type="module">
   import { initializeApp } from "firebase/app";
-  // ADD THIS LINE BELOW TO IMPORT THE DATABASE:
-  import { getDatabase, ref, push, set } from "firebase/database";
+  // ALL DATABASE IMPORTS BELONG HERE AT THE TOP LEVEL:
+  import { getDatabase, ref, push, set, onValue } from "firebase/database";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBnTAARhSyJcMIWTg9WRAmJG9-jxTF5GDA",
@@ -14,12 +14,11 @@
     storageBucket: "bemine-45213.firebasestorage.app",
     messagingSenderId: "999541723475",
     appId: "1:999541723475:web:91980fc1c63ee9276911a6",
-    databaseURL: "https://bemine-45213-default-rtdb.firebaseio.com" // Essential for Realtime DB
+    databaseURL: "https://bemine-45213-default-rtdb.firebaseio.com"
   };
 
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  // Expose the database globally so your other functions can see it
   window.db = getDatabase(app);
 </script>
     <meta charset="UTF-8">
@@ -608,7 +607,28 @@
             <button onclick="sendMessage()">Send</button>
         </div>
     </div>
- 
+    <!-- SECRET ADMIN DASHBOARD -->
+    <div id="adminDashboard" style="display: none; min-height: 100vh; background: #1a202c; color: white; padding: 30px; font-family: sans-serif;">
+        <h2 style="border-bottom: 2px solid #4a5568; padding-bottom: 10px; color: #63b3ed;">🔒 Proposal Control Center</h2>
+        <div style="margin: 20px 0; display: flex; gap: 20px;">
+            <div style="background: #2d3748; padding: 20px; border-radius: 10px; flex: 1;">
+                <h3>Status Alert</h3>
+                <p id="adminStatus" style="font-size: 20px; font-weight: bold; color: #fc8181; margin-top: 10px;">Waiting for completion...</p>
+            </div>
+            <div style="background: #2d3748; padding: 20px; border-radius: 10px; flex: 1;">
+                <h3>Date Preferences</h3>
+                <div id="adminPreferences" style="margin-top: 10px; line-height: 1.6; color: #cbd5e0;">No data synced yet.</div>
+            </div>
+        </div>
+        <div style="background: #2d3748; padding: 20px; border-radius: 10px;">
+            <h3>Live Chat Monitor (Read/Reply)</h3>
+            <div id="adminMessages" style="height: 200px; overflow-y: auto; background: #1a202c; padding: 15px; border-radius: 5px; margin: 15px 0;"></div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="adminReplyInput" placeholder="Type a reply as yourself..." style="flex: 1; padding: 10px; border-radius: 5px; border: none;">
+                <button onclick="sendAdminReply()" style="padding: 10px 20px; background: #3182ce; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Send to Her</button>
+            </div>
+        </div>
+    </div>
     <script>
         let noClickCount = 0;
         let selectedAnswers = {};
@@ -752,7 +772,32 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('stage3').style.display = 'flex';
         }
  
-        function stage3To4() {
+        // Add these variables and hooks right underneath window.db = getDatabase(app);
+
+// Check if you are logging in as admin or if she has already finished the form previously
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAdmin = urlParams.get('admin') === 'true';
+    const hasCompleted = localStorage.getItem('proposalCompleted') === 'true';
+
+    if (isAdmin) {
+        // Force switch to Dashboard view
+        document.getElementById('stage1').style.display = 'none';
+        document.getElementById('adminDashboard').style.display = 'block';
+        setupAdminListeners();
+    } else if (hasCompleted) {
+        // If she already filled it out, skip straight to the chat room
+        document.getElementById('stage1').style.display = 'none';
+        document.getElementById('stage4').style.display = 'flex';
+        // Hydrate saved details if needed, or pull fresh from chat
+        setupClientChatListener();
+    }
+    
+    // ... keep your existing calendar min/max date boundary calculations here ...
+});
+
+// Update your stage3To4 function to save progress locally and write to database cleanly
+function stage3To4() {
     const dateInput = document.getElementById('dateInput').value;
     const timeInput = document.getElementById('timeInput').value;
 
@@ -764,48 +809,114 @@ document.addEventListener('DOMContentLoaded', function() {
     selectedAnswers.date = dateInput;
     selectedAnswers.time = timeInput;
 
-    // --- NEW: SEND NOTIFICATION / DATA TO YOUR FIREBASE END ---
+    // Save her progress to her local browser storage so she skips stages next time
+    localStorage.setItem('proposalCompleted', 'true');
+
+    // Send payload directly to Firebase under a static single record path (e.g., 'live_proposal')
     if (window.db) {
-        const dateRef = ref(window.db, 'proposals');
-        const newProposalRef = push(dateRef);
-        set(newProposalRef, {
+        const proposalRef = ref(window.db, 'live_proposal/details');
+        set(proposalRef, {
             ...selectedAnswers,
             completedAt: new Date().toISOString(),
             status: "Finished All Stages"
-        }).then(() => {
-            console.log("Notification sent to your end successfully!");
-        }).catch((error) => {
-            console.error("Error alerting database: ", error);
         });
     }
-    // --- END OF NEW CODE ---
 
     document.getElementById('stage3').style.display = 'none';
     document.getElementById('stage4').style.display = 'flex';
-
-    // Format and display the date and time
-    const dateObj = new Date(selectedAnswers.date);
-    const formattedDate = dateObj.toLocaleDateString('en-US', {
-        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    });
-
-    const timeObj = new Date(`2000-01-01 ${selectedAnswers.time}`);
-    const formattedTime = timeObj.toLocaleTimeString('en-US', {
-        hour: 'numeric', minute: '2-digit', hour12: true
-    });
-
-    document.getElementById('dateDisplay').textContent = `📅 ${formattedDate} at ${formattedTime}`;
-
     initializeChat();
-
-    setTimeout(() => {
-        document.getElementById('installModal').classList.add('show');
-    }, 500);
-
-    setTimeout(() => {
-        document.getElementById('calendarModal').classList.add('show');
-    }, 2500);
+    setupClientChatListener();
 }
+
+// --- AIRTIGHT REALTIME ENGINE FOR ADMIN & MESSAGES ---
+
+// Admin panel logic: Listen for choices and stream chat logs
+function setupAdminListeners() {
+    if (!window.db) return;
+
+    // Stream proposal choices
+    onValue(ref(window.db, 'live_proposal/details'), (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            document.getElementById('adminStatus').textContent = "🎉 Completed Everything!";
+            document.getElementById('adminStatus').style.color = "#48bb78";
+            document.getElementById('adminPreferences').innerHTML = `
+                <strong>Date:</strong> ${data.date}<br>
+                <strong>Time:</strong> ${data.time}<br>
+                <strong>Activity:</strong> ${data.activity}<br>
+                <strong>Vibe:</strong> ${data.vibe}<br>
+                <strong>Pickup:</strong> ${data.location}
+            `;
+        }
+    });
+
+    // Stream chat room logs into admin panel
+    onValue(ref(window.db, 'live_proposal/messages'), (snapshot) => {
+        const messagesDiv = document.getElementById('adminMessages');
+        messagesDiv.innerHTML = '';
+        snapshot.forEach((childSnapshot) => {
+            const msg = childSnapshot.val();
+            const bubble = document.createElement('div');
+            bubble.style.margin = '5px 0';
+            bubble.style.padding = '8px';
+            bubble.style.borderRadius = '5px';
+            bubble.style.background = msg.sender === 'admin' ? '#2b6cb0' : '#4a5568';
+            bubble.innerHTML = `<strong>${msg.sender === 'admin' ? 'You' : 'Her'}:</strong> ${msg.text}`;
+            messagesDiv.appendChild(bubble);
+        });
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    });
+}
+
+// Send Admin messages
+window.sendAdminReply = function() {
+    const input = document.getElementById('adminReplyInput');
+    const text = input.value.trim();
+    if (!text || !window.db) return;
+
+    const msgRef = ref(window.db, 'live_proposal/messages');
+    push(msgRef, {
+        sender: 'admin',
+        text: text,
+        timestamp: new Date().toISOString()
+    });
+    input.value = '';
+};
+
+// Client chat logic: Make sure her screen instantly shows your replies
+function setupClientChatListener() {
+    if (!window.db) return;
+    
+    onValue(ref(window.db, 'live_proposal/messages'), (snapshot) => {
+        const messagesContainer = document.getElementById('messagesContainer');
+        messagesContainer.innerHTML = '';
+        
+        snapshot.forEach((childSnapshot) => {
+            const msg = childSnapshot.val();
+            const msgRow = document.createElement('div');
+            // If sender is admin, it displays as an external incoming her-message bubble on her client
+            msgRow.className = msg.sender === 'admin' ? 'message her-message' : 'message my-message';
+            msgRow.innerHTML = `<div class="message-bubble">${msg.text}</div>`;
+            messagesContainer.appendChild(msgRow);
+        });
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
+}
+
+// Modify your original text input action to push directly to Firebase
+window.sendMessage = function() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    if (!text || !window.db) return;
+
+    const msgRef = ref(window.db, 'live_proposal/messages');
+    push(msgRef, {
+        sender: 'client',
+        text: text,
+        timestamp: new Date().toISOString()
+    });
+    input.value = '';
+};
  
         function initializeChat() {
     const messagesContainer = document.getElementById('messagesContainer');
