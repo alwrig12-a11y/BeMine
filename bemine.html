@@ -673,23 +673,33 @@ const app = initializeApp(firebaseConfig);
  
         // --- Replace your existing handleNoClick, makeButtonEvade, and DOMContentLoaded listener with this ---
 
-function handleNoClick() {
-    // Backup in case they somehow manage to click it (e.g., using keyboard tabs)
+function handleNoClick(e) {
+    // If they manage to click it via keyboard (Tab + Enter) or corner it,
+    // prevent any default action and force it to jump away.
+    if (e) {
+        e.preventDefault();
+    }
     makeButtonEvade();
 }
 
 function makeButtonEvade() {
     const noBtn = document.getElementById('noBtn');
     
-    // Get viewport dimensions minus padding to keep the button fully on-screen
-    const maxX = window.innerWidth - noBtn.offsetWidth - 20;
-    const maxY = window.innerHeight - noBtn.offsetHeight - 20;
+    // 1. Lock its original dimensions so it never stretches
+    noBtn.style.width = '130px';  // Forces a stable width
+    noBtn.style.height = '50px';  // Forces a stable height
+    
+    // 2. Break it out to global coordinates
+    noBtn.style.position = 'fixed';
+    noBtn.style.zIndex = '9999'; // Ensure it doesn't hide behind anything
+    
+    // 3. Calculate safe jump boundaries within the viewport
+    const maxX = window.innerWidth - 150; 
+    const maxY = window.innerHeight - 70;
     
     const randomX = Math.max(20, Math.random() * maxX);
     const randomY = Math.max(20, Math.random() * maxY);
     
-    // Switch to fixed positioning so it can escape its small container and jump anywhere on screen
-    noBtn.style.position = 'fixed';
     noBtn.style.left = randomX + 'px';
     noBtn.style.top = randomY + 'px';
 }
